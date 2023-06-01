@@ -5,6 +5,39 @@ const dbuser = [
   { email: "amain@gmail.com", password: "123455" },
 ];
 
+const dbpost = [
+  {
+    email: "sumit@gmail.com",
+    id: 1,
+    title: "delectus aut autem",
+    completed: false,
+  },
+  {
+    email: "sumit@gmail.com",
+    id: 2,
+    title: "quis ut nam facilis et officia qui",
+    completed: false,
+  },
+  {
+    email: "amain@gmail.com",
+    id: 3,
+    title: "fugiat veniam minus",
+    completed: false,
+  },
+  {
+    email: "amain@gmail.com",
+    id: 4,
+    title: "et porro tempora",
+    completed: true,
+  },
+  {
+    email: "amain@gmail.com",
+    id: 5,
+    title: "laboriosam mollitia et enim quasi adipisci quia provident illum",
+    completed: false,
+  },
+];
+
 const Login = (req, res) => {
   try {
     const { email, password } = req.body;
@@ -21,8 +54,17 @@ const Login = (req, res) => {
         const token = jwt.sign(findEmail, "12345dwewewe67", {
           expiresIn: "1day",
         });
-        
-        return res.status(200).json({ token, email: findEmail.email });
+
+        // this is used for cookie
+        const options = {
+          expires: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
+          httpOnly: true,
+        };
+
+        return res
+          .status(200)
+          .cookie("token", token, options)
+          .json({ token, email: findEmail.email });
       } else {
         return res.status(200).json({ message: "Password incorrect" });
       }
@@ -34,4 +76,32 @@ const Login = (req, res) => {
   }
 };
 
-module.exports = { Login };
+const Post = async (req, res) => {
+  try {
+    const getToken = req.header("Authorization")?.replace("Bearer ", "");
+
+    const getUser = jwt.verify(getToken, "12345dwewewe67");
+
+    if (!getUser.email) {
+      return res.status(200).json({ message: "user are not login" });
+    } else {
+      const post = dbpost.filter((value) => value.email === getUser.email);
+
+      return res.status(200).json({ post });
+    }
+  } catch (error) {
+    return res.status(200).json({ error: error.message });
+  }
+};
+
+const RequestPost = (req, res) => {
+  try {
+    const body = req.body;
+    return res.status(200).json({ data: body });
+  } catch (error) {
+    return res.status(200).json({ error: error.message });
+  }
+};
+
+
+module.exports = { Login, Post, RequestPost };

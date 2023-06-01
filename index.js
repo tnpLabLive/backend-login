@@ -1,8 +1,7 @@
 const express = require("express");
 const app = express();
-var cors = require('cors')
-const auth= require('./router/Auth')
-
+var cors = require("cors");
+const auth = require("./router/Auth");
 
 // this is for cookies
 const cookieParser = require("cookie-parser");
@@ -13,29 +12,26 @@ var jwt = require("jsonwebtoken");
 app.use(
   cors({
     credentials: true,
-    origin: [
-      "http://localhost:3000",
-    ],
+    origin: ["http://localhost:3000"],
   })
 );
 
-
+app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(cookieParser());
 
-app.use("/api", auth)
+app.use("/api", auth);
 
 app.post("/createjwt", (req, res) => {
   const body = req.body;
 
   try {
-      // sign methods takes at first: data, and second: secret Key, third: expiry date
+    // sign methods takes at first: data, and second: secret Key, third: expiry date
     const data = jwt.sign(body, "kjdfngkljdfgdfgb", {
-      expiresIn:"1day"
+      expiresIn: "1day",
     });
 
-    res.status(200).json({ data});
+    res.status(200).json({ data });
   } catch (error) {
     res.status(500).json({ error });
   }
@@ -58,8 +54,20 @@ app.post("/verifyjwt", (req, res) => {
     };
 
     // Here, we are making and storing in cookie. cookie first param: Keyname, second param: data, third is option
-    res.status(200).cookie("Deepak", data, options ).json({ status:"true", data });
+    res
+      .status(200)
+      .cookie("Deepak", data, options)
+      .json({ status: "true", data });
+  } catch (error) {
+    res.status(500).json({ error });
+  }
+});
 
+app.post("/getcookie", (req, res) => {
+  try {
+    const token = req.cookies.token;
+    console.log('token:', token)
+    res.status(200).json({ token });
   } catch (error) {
     res.status(500).json({ error });
   }
@@ -68,7 +76,7 @@ app.post("/verifyjwt", (req, res) => {
 app.post("/clearcookie", (req, res) => {
   try {
     // this is for clear clear cookie
-    res.status(200).clearCookie("Deepak").json({ status:"true" });
+    res.status(200).clearCookie("Deepak").json({ status: "true" });
   } catch (error) {
     res.status(500).json({ error });
   }
