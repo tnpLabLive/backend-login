@@ -1,8 +1,8 @@
 var jwt = require("jsonwebtoken");
 
 const dbuser = [
-  { email: "sumit@gmail.com", password: "12345" },
-  { email: "amain@gmail.com", password: "123455" },
+  { email: "sumit@gmail.com", password: "12345", role: "admin" },
+  { email: "amain@gmail.com", password: "123455", role: "user" },
 ];
 
 const dbpost = [
@@ -64,7 +64,7 @@ const Login = (req, res) => {
         return res
           .status(200)
           .cookie("token", token, options)
-          .json({ token, email: findEmail.email });
+          .json({ token, user: findEmail });
       } else {
         return res.status(200).json({ message: "Password incorrect" });
       }
@@ -78,17 +78,16 @@ const Login = (req, res) => {
 
 const Post = async (req, res) => {
   try {
-    const getToken = req.header("Authorization")?.replace("Bearer ", "");
+    const getToken = req.cookies.token;
+
+    if (!getToken) {
+      return res.status(200).json({ error: "token not found" });
+    }
 
     const getUser = jwt.verify(getToken, "12345dwewewe67");
 
-    if (!getUser.email) {
-      return res.status(200).json({ message: "user are not login" });
-    } else {
-      const post = dbpost.filter((value) => value.email === getUser.email);
-
-      return res.status(200).json({ post });
-    }
+    const post = dbpost.filter((value) => value.email === getUser.email);
+    return res.status(200).json({ post });
   } catch (error) {
     return res.status(200).json({ error: error.message });
   }
@@ -97,11 +96,24 @@ const Post = async (req, res) => {
 const RequestPost = (req, res) => {
   try {
     const body = req.body;
+
+    const getToken = req.header("Authorization")?.replace("Bearer ", "");
+
+    const getUser = jwt.verify(getToken, "12345dwewewe67");
+
     return res.status(200).json({ data: body });
   } catch (error) {
     return res.status(200).json({ error: error.message });
   }
 };
 
+const Logout = async (req, res) => {
+  try {
+    
+    return res.status(200).clearCookie("token").json({
+      succes: true,
+    });
+  } catch (error) {}
+};
 
-module.exports = { Login, Post, RequestPost };
+module.exports = { Login, Post, RequestPost, Logout };
